@@ -1,10 +1,17 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // ใช้สำหรับ UAT/Staging เท่านั้น: เปิดอ่าน/เขียน Collection ของฟอร์ม UAT
-    // ก่อนใช้งาน Production ควรเพิ่ม Firebase Authentication และจำกัดสิทธิ์ผู้ใช้
+    // โหมดพนักงานทำแบบประเมิน:
+    // อนุญาตให้สร้างรายการใหม่เท่านั้น เพื่อให้เก็บข้อมูลจากหลายคนได้
+    // ไม่อนุญาตให้อ่าน แก้ไข หรือลบข้อมูลผ่านหน้าเว็บสาธารณะ
     match /akrivis_uat_records/{recordId} {
-      allow read, write: if true;
+      allow create: if request.resource.data.evaluatorName is string
+        && request.resource.data.evaluatorName.size() >= 2
+        && request.resource.data.projectSystem == "Akrivis"
+        && request.resource.data.data is map
+        && request.resource.data.createdAtLocal is string;
+
+      allow read, update, delete: if false;
     }
   }
 }

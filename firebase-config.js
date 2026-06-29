@@ -5,12 +5,13 @@
 // 3) เปิดใช้ Firestore Database ใน Firebase Console
 
 window.AKRIVIS_FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "[GCP_API_KEY]",
+  authDomain: "akrivis-uat-webapp.firebaseapp.com",
+  projectId: "akrivis-uat-webapp",
+  storageBucket: "akrivis-uat-webapp.firebasestorage.app",
+  messagingSenderId: "494554499178",
+  appId: "1:494554499178:web:4668878b3939f8d735a855",
+  measurementId: "G-19125G426K"
 };
 
 // ชื่อ Collection ใน Cloud Firestore

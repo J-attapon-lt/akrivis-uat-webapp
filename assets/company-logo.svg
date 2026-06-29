@@ -1,0 +1,16 @@
+<svg width="480" height="480" viewBox="0 0 480 480" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="480" height="480" rx="116" fill="url(#g0)"/>
+  <circle cx="386" cy="92" r="62" fill="#38BDF8" fill-opacity="0.42"/>
+  <circle cx="72" cy="384" r="84" fill="#22C55E" fill-opacity="0.28"/>
+  <path d="M120 164C152 105 206 74 281 79C351 84 398 137 402 204C407 284 352 345 270 365C197 383 126 352 92 293C67 248 87 204 120 164Z" fill="white" fill-opacity="0.16"/>
+  <path d="M142 145H197L239 241L284 145H339L262 302V358H216V303L142 145Z" fill="white"/>
+  <path d="M295 287C325 283 352 266 365 237C373 219 373 198 367 179C390 200 401 227 398 258C394 308 359 348 311 361C278 370 242 365 214 348C251 344 280 326 295 287Z" fill="#BAE6FD" fill-opacity="0.95"/>
+  <text x="240" y="407" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="800" letter-spacing="4" fill="white">YANGYUEN TECH</text>
+  <defs>
+    <linearGradient id="g0" x1="44" y1="50" x2="423" y2="430" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="0.52" stop-color="#2563EB"/>
+      <stop offset="1" stop-color="#0EA5E9"/>
+    </linearGradient>
+  </defs>
+</svg>

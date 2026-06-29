@@ -1,131 +1,90 @@
-# Akrivis UAT Web App v1.5.0 + Firebase Firestore
+# Akrivis UAT Web App v1.5.0
 
-เว็บแอปแบบ Static สำหรับฟอร์ม UAT ของระบบ Akrivis Version 1.5.0 บน Staging Server หัวข้อการรับเข้าหลายลูกค้าและหลายสินค้า พร้อมรองรับการบันทึกข้อมูลลง Firebase Cloud Firestore
+เว็บแอปสำหรับให้พนักงานทำแบบประเมิน UAT ระบบ Akrivis Version 1.5.0 บน Staging Server
 
-## ฟังก์ชันหลัก
+## สิ่งที่ปรับในเวอร์ชันนี้
 
-- แยกฟอร์ม UAT เป็น 3 ส่วน: ตาชั่งใหญ่, ตาชั่งเล็ก / ชั่งซื้อ, และ Admin
-- กรอกผลทดสอบ ผ่าน / ไม่ผ่าน / ผ่านโดยมีข้อสังเกต
-- บันทึกข้อมูลอัตโนมัติในเครื่องผู้ใช้งานด้วย Local Storage
-- บันทึกข้อมูลขึ้น Firebase Cloud Firestore
-- โหลดข้อมูลกลับจาก Firebase ด้วย Record ID
-- ดูรายการ UAT ล่าสุดจาก Firebase ได้ 20 รายการ
-- Export / Import ข้อมูลเป็น JSON
-- พิมพ์เอกสารหรือ Save เป็น PDF ได้จาก Browser
-- ใช้งานได้บน GitHub Pages โดยไม่ต้องมี Backend
+- เพิ่ม Logo บริษัทในส่วนหัวของเว็บ
+- แสดงชื่อผู้พัฒนาระบบ `J-attapon` เฉพาะตำแหน่ง Footer
+- ปรับหน้าตาให้เป็นมืออาชีพมากขึ้น
+- เพิ่มสีสันแบบ Corporate Dashboard
+- ใช้ Google Font: `IBM Plex Sans Thai Looped`
+- ย้ายชุดปุ่มไปไว้ด้านล่างของแบบฟอร์ม
+- เพิ่มปุ่ม `บันทึก`, `แก้ไข`, และ `ยกเลิก`
+- บังคับกรอกชื่อผู้ประเมินก่อนบันทึก
+- ทุกครั้งที่กดบันทึกจะสร้างรายการใหม่ใน Firebase Firestore
+- ปุ่ม `แก้ไข` ใช้พากลับไปแก้ข้อมูลในฟอร์มก่อนส่ง
+- ปุ่ม `ยกเลิก` ใช้ล้างข้อมูลแบบร่างที่กำลังกรอก โดยไม่ลบข้อมูลที่บันทึกไปแล้วใน Firebase
+- รองรับข้อมูลจากพนักงานหลายคน
+- เพิ่มแถบความคืบหน้าการกรอกแบบประเมิน
+- ปรับแท็บและตารางให้ใช้งานง่ายบนมือถือ
 
-## โครงสร้างไฟล์
+## ไฟล์สำคัญ
 
-```text
-.
-├── index.html
-├── style.css
-├── app.js
-├── firebase-config.js
-├── firebase-config.example.js
-├── firebase.json
-├── firestore.rules
-├── .firebaserc.example
-├── .nojekyll
-├── README.md
-└── .github/workflows/deploy-pages.yml
+- `index.html` หน้าเว็บหลัก
+- `style.css` รูปแบบหน้าตาเว็บ
+- `app.js` การทำงานของฟอร์มและ Firebase
+- `firebase-config.js` ใส่ค่า Firebase config ของโปรเจกต์
+- `firestore.rules` Rules สำหรับ Firestore
+- `firebase.json` ตั้งค่า Firebase Hosting และ Firestore
+- `assets/logo.svg` ไฟล์โลโก้บริษัท สามารถเปลี่ยนเป็นไฟล์โลโก้จริงของบริษัทได้
+
+## การเปลี่ยนโลโก้บริษัท
+
+ไฟล์โลโก้อยู่ที่:
+
+```txt
+assets/logo.svg
 ```
 
+หากต้องการใช้โลโก้จริงของบริษัท ให้แทนที่ไฟล์นี้ด้วยไฟล์ชื่อเดิม หรือแก้ path ใน `index.html` ตรงส่วนนี้:
 
-## ฟอนต์ที่ใช้
+```html
+<img src="assets/logo.svg" alt="โลโก้บริษัท" />
+```
 
-เว็บแอปตั้งค่า `font-family` เป็น `TH Sarabun New` เป็นหลัก และใช้ `Sarabun` จาก Google Fonts เป็นฟอนต์สำรองในกรณีที่เครื่องผู้ใช้งานไม่มี TH Sarabun New ติดตั้งอยู่
+## การตั้งค่า Firebase
 
-หมายเหตุ: โปรเจกต์นี้ไม่ได้แนบไฟล์ฟอนต์ TH Sarabun New เข้าไปใน ZIP หากต้องการให้แสดง TH Sarabun New ตรงกันทุกเครื่อง ควรติดตั้งฟอนต์นี้ในเครื่องผู้ใช้งานก่อน หรือให้ฝ่าย IT จัดการฟอนต์ตามสิทธิ์การใช้งานขององค์กร
-
-## วิธีตั้งค่า Firebase Firestore
-
-### 1) สร้าง Firebase Project
-
-1. เข้า Firebase Console
-2. สร้าง Project ใหม่ หรือเลือก Project เดิม
-3. ไปที่ Build > Firestore Database
-4. Create database
-5. เลือกโหมดเริ่มต้นสำหรับทดสอบ หรือ Production แล้วนำ Rules ด้านล่างไปใส่
-
-### 2) เพิ่ม Web App และนำ Config มาใส่
-
-ไปที่ Project settings > General > Your apps > Add app > Web แล้ว Copy ค่า `firebaseConfig` มาใส่ในไฟล์ `firebase-config.js`
-
-ตัวอย่างไฟล์ `firebase-config.js`
+เปิดไฟล์ `firebase-config.js` แล้วใส่ค่าจริงจาก Firebase Console:
 
 ```js
 window.AKRIVIS_FIREBASE_CONFIG = {
-  apiKey: "xxxxxxxxxxxxxxxx",
-  authDomain: "your-project-id.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project-id.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:web:xxxxxxxxxxxxxxxx",
+  apiKey: "...",
+  authDomain: "akrivis-uat-webapp.firebaseapp.com",
+  projectId: "akrivis-uat-webapp",
+  storageBucket: "akrivis-uat-webapp.appspot.com",
+  messagingSenderId: "...",
+  appId: "...",
 };
-
-window.AKRIVIS_FIREBASE_COLLECTION = "akrivis_uat_records";
 ```
 
-### 3) ตั้งค่า Firestore Rules สำหรับ UAT/Staging
-
-ไฟล์นี้เตรียมไว้แล้วที่ `firestore.rules`
+Collection เริ่มต้นคือ:
 
 ```txt
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /akrivis_uat_records/{recordId} {
-      allow read, write: if true;
-    }
-  }
-}
+akrivis_uat_records
 ```
 
-> คำเตือน: Rules นี้เปิดอ่าน/เขียนสำหรับการทดสอบเท่านั้น ไม่ควรใช้กับข้อมูลลับหรือ Production จริง หากต้องการใช้งานจริงควรเพิ่ม Firebase Authentication และจำกัดสิทธิ์เฉพาะผู้ใช้ที่ได้รับอนุญาต
+## Deploy
 
-## วิธีใช้งาน Web App
+รันคำสั่งนี้จากโฟลเดอร์โปรเจกต์:
 
-1. เปิดหน้าเว็บ
-2. กด `เริ่ม Record ใหม่` เพื่อสร้าง Record ID ใหม่ หรือกรอก Record ID เดิมที่ต้องการโหลด
-3. กรอกข้อมูล UAT ในแต่ละแท็บ
-4. กด `บันทึกในเครื่อง` เพื่อเก็บข้อมูลใน Browser
-5. กด `บันทึก Firebase` เพื่อส่งข้อมูลขึ้น Cloud Firestore
-6. กด `โหลด Firebase` เพื่อดึงข้อมูลจาก Record ID
-7. กด `ดูรายการล่าสุด` เพื่อดู UAT 20 รายการล่าสุดที่บันทึกไว้
-
-## วิธี Deploy ขึ้น GitHub Pages
-
-1. สร้าง Repository ใหม่ใน GitHub เช่น `akrivis-uat-webapp`
-2. Upload ไฟล์ทั้งหมดในโฟลเดอร์นี้ขึ้น Repository
-3. ไปที่ Settings > Pages
-4. เลือก Build and deployment เป็น GitHub Actions
-5. Push หรือแก้ไขไฟล์ใน branch `main`
-6. รอ Workflow ทำงานเสร็จ แล้วเปิด URL ของ GitHub Pages
-
-## วิธี Deploy Firestore Rules ด้วย Firebase CLI ทางเลือก
-
-ติดตั้ง Firebase CLI แล้ว login:
-
-```bash
-npm install -g firebase-tools
-firebase login
+```powershell
+firebase deploy --only hosting
 ```
 
-แก้ไฟล์ `.firebaserc.example` เป็น `.firebaserc` และเปลี่ยน `YOUR_PROJECT_ID` เป็น Project ID จริง จากนั้นรัน:
+ถ้าต้องการ deploy rules ด้วย:
 
-```bash
+```powershell
 firebase deploy --only firestore:rules
+firebase deploy --only hosting
+```
+
+หรือ deploy ทั้งหมด:
+
+```powershell
+firebase deploy
 ```
 
 ## หมายเหตุสำคัญ
 
-- หากยังไม่ใส่ Firebase config ระบบจะทำงานแบบ Local Storage เหมือนเดิม
-- การบันทึก Firebase ใช้ Collection ชื่อ `akrivis_uat_records`
-- ข้อมูลแต่ละชุดใช้ `Record ID` เป็นเลขอ้างอิง
-- ข้อมูลที่ Export เป็น JSON ยังสามารถ Import กลับมาใช้งานได้เหมือนเดิม
-
-## Font
-
-เว็บแอปตั้งค่าให้ใช้ฟอนต์ **Thasadith** ผ่าน Google Fonts โดยมี fallback เป็น Sarabun / Tahoma / Arial ในกรณีที่โหลดฟอนต์ไม่ได้
-
+ระบบใช้ Google Font `IBM Plex Sans Thai Looped` ผ่านลิงก์จาก Google Fonts โดยไม่ได้แนบไฟล์ฟอนต์ไว้ใน ZIP

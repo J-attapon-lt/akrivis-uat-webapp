@@ -3,32 +3,100 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Akrivis UAT Form v1.5.0</title>
+  <title>Akrivis UAT Assessment v1.5.0</title>
   <meta name="description" content="แบบฟอร์ม UAT สำหรับ Akrivis Version 1.5.0 บน Staging Server" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="page-bg" aria-hidden="true">
+    <span class="blob blob-a"></span>
+    <span class="blob blob-b"></span>
+    <span class="blob blob-c"></span>
+  </div>
+
   <header class="app-header">
-    <div>
-      <p class="eyebrow">UAT Web App</p>
-      <h1>Akrivis Version 1.5.0</h1>
-      <p class="subtitle">Staging Server · การรับเข้าหลายลูกค้าและหลายสินค้า</p>
-    </div>
-    <div class="header-actions no-print">
-      <button id="saveBtn" class="primary">บันทึกในเครื่อง</button>
-      <button id="printBtn">พิมพ์ / Save PDF</button>
-      <button id="exportBtn">Export JSON</button>
-      <label class="import-label" for="importFile">Import JSON</label>
-      <input id="importFile" type="file" accept="application/json" />
-      <button id="resetBtn" class="danger">ล้างข้อมูล</button>
+    <div class="brand-block">
+      <div class="company-logo-card" aria-label="โลโก้บริษัท">
+        <img src="assets/logo.svg" alt="โลโก้บริษัท" />
+      </div>
+      <div class="brand-copy">
+        <p class="eyebrow">UAT Assessment Portal</p>
+        <h1>Akrivis Version 1.5.0</h1>
+        <p class="subtitle">Staging Server · การรับเข้าหลายลูกค้าและหลายสินค้า</p>
+        <div class="header-badges no-print" aria-label="ข้อมูลระบบ">
+          <span>Firebase Database</span>
+          <span>Employee Assessment</span>
+          <span>Multi Customer + Product</span>
+        </div>
+      </div>
     </div>
   </header>
 
   <main>
-    <section class="project-card">
+    <section class="overview-grid no-print" aria-label="สถานะการกรอกแบบประเมิน">
+      <article class="overview-card accent-blue">
+        <span class="overview-icon" aria-hidden="true">👤</span>
+        <div>
+          <p class="card-label">ผู้ประเมิน</p>
+          <h2 id="evaluatorStatus">รอกรอกชื่อผู้ประเมิน</h2>
+          <p>ต้องระบุชื่อก่อนจึงจะบันทึกได้</p>
+        </div>
+      </article>
+
+      <article class="overview-card accent-green">
+        <span class="overview-icon" aria-hidden="true">📊</span>
+        <div>
+          <p class="card-label">ความคืบหน้า</p>
+          <h2 id="completionText">กรอกผลแล้ว 0%</h2>
+          <div class="progress-track" aria-hidden="true"><span id="completionBar"></span></div>
+        </div>
+      </article>
+
+      <article class="overview-card accent-purple">
+        <span class="overview-icon" aria-hidden="true">☁️</span>
+        <div>
+          <p class="card-label">ฐานข้อมูล</p>
+          <p id="cloudStatus" class="cloud-status muted">กำลังตรวจสอบการเชื่อมต่อ Firebase...</p>
+          <p class="cloud-note">บันทึกผลลง Cloud Firestore</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="project-card evaluator-card">
+      <div class="section-title compact">
+        <div>
+          <p class="eyebrow">ข้อมูลผู้ประเมิน</p>
+          <h2>แบบประเมิน UAT สำหรับพนักงาน</h2>
+          <p class="section-subtitle">กรอกข้อมูลผู้ประเมินและผลการทดสอบแต่ละส่วนให้ครบก่อนกดบันทึก</p>
+        </div>
+      </div>
+      <div class="grid four">
+        <label>ชื่อผู้ประเมิน <span class="required">*</span>
+          <input id="evaluatorName" data-field="evaluator.name" placeholder="กรอกชื่อ-นามสกุลก่อนบันทึก" required />
+        </label>
+        <label>แผนก
+          <input data-field="evaluator.department" placeholder="เช่น ฝ่ายผลิต / QA / IT" />
+        </label>
+        <label>วันที่ประเมิน
+          <input type="date" data-field="evaluator.date" />
+        </label>
+        <label>หมายเหตุผู้ประเมิน
+          <input data-field="evaluator.note" placeholder="ถ้ามี" />
+        </label>
+      </div>
+      <p class="muted-text">ข้อมูลของผู้ประเมินแต่ละคนจะถูกบันทึกเป็นคนละรายการใน Firebase เพื่อให้รวบรวมผลหลายคนได้สะดวก</p>
+    </section>
+
+    <section class="project-card project-meta-card">
+      <div class="section-title compact mini-title">
+        <div>
+          <p class="eyebrow">Project Scope</p>
+          <h2>รายละเอียดระบบที่ทดสอบ</h2>
+        </div>
+      </div>
       <div class="grid four">
         <label>ระบบ
           <input data-field="project.system" value="Akrivis" />
@@ -45,44 +113,19 @@
       </div>
     </section>
 
-    <section class="cloud-card no-print">
-      <div class="cloud-card-head">
-        <div>
-          <p class="eyebrow">Firebase Database</p>
-          <h2>บันทึกข้อมูล UAT ลง Cloud Firestore</h2>
-          <p id="cloudStatus" class="cloud-status muted">กำลังตรวจสอบการตั้งค่า Firebase...</p>
-        </div>
-        <div class="cloud-actions">
-          <button id="newRecordBtn" type="button">เริ่ม Record ใหม่</button>
-          <button id="saveCloudBtn" type="button" class="primary">บันทึก Firebase</button>
-          <button id="loadCloudBtn" type="button">โหลด Firebase</button>
-          <button id="listCloudBtn" type="button">ดูรายการล่าสุด</button>
-        </div>
-      </div>
-      <div class="grid two cloud-grid">
-        <label>Record ID
-          <input data-field="recordId" placeholder="เช่น UAT-20260629153000-AB12" />
-        </label>
-        <label>Collection Name
-          <input value="akrivis_uat_records" readonly />
-        </label>
-      </div>
-      <div id="cloudRecords" class="cloud-records"></div>
-      <p class="muted-text cloud-note">หมายเหตุ: ระบบจะยังบันทึกในเครื่องอัตโนมัติด้วยเสมอ แม้ Firebase ยังไม่ได้ตั้งค่า</p>
-    </section>
-
     <nav class="tabs no-print" aria-label="เลือกฟอร์ม UAT">
-      <button class="tab active" data-tab="big-scale">ฟอร์ม 1 · ตาชั่งใหญ่</button>
-      <button class="tab" data-tab="small-scale">ฟอร์ม 2 · ตาชั่งเล็ก / ชั่งซื้อ</button>
-      <button class="tab" data-tab="admin">ฟอร์ม 3 · Admin</button>
-      <button class="tab" data-tab="summary">สรุปผลรวม</button>
+      <a class="tab active" href="#big-scale" data-tab="big-scale"><span>01</span> ตาชั่งใหญ่</a>
+      <a class="tab" href="#small-scale" data-tab="small-scale"><span>02</span> ตาชั่งเล็ก / ชั่งซื้อ</a>
+      <a class="tab" href="#admin" data-tab="admin"><span>03</span> Admin</a>
+      <a class="tab" href="#summary" data-tab="summary"><span>04</span> สรุปผลรวม</a>
     </nav>
 
-    <section id="big-scale" class="panel active form-section">
+    <section id="big-scale" class="panel active form-section section-blue">
       <div class="section-title">
         <div>
           <p class="eyebrow">ฟอร์มที่ 1</p>
           <h2>UAT ตาชั่งใหญ่</h2>
+          <p class="section-subtitle">ตรวจสอบการสร้างตั๋วชั่งใหญ่และการแสดงสถานะใบชั่งเล็ก</p>
         </div>
         <span class="status-pill" data-summary-pill="bigScale">ยังไม่สรุปผล</span>
       </div>
@@ -123,11 +166,12 @@
       </div>
     </section>
 
-    <section id="small-scale" class="panel form-section">
+    <section id="small-scale" class="panel form-section section-green">
       <div class="section-title">
         <div>
           <p class="eyebrow">ฟอร์มที่ 2</p>
           <h2>UAT ตาชั่งเล็ก / ชั่งซื้อ</h2>
+          <p class="section-subtitle">ตรวจสอบการแสดงบัตรชั่งเล็กแยกตามลูกค้าและสินค้า</p>
         </div>
         <span class="status-pill" data-summary-pill="smallScale">ยังไม่สรุปผล</span>
       </div>
@@ -169,11 +213,12 @@
       </div>
     </section>
 
-    <section id="admin" class="panel form-section">
+    <section id="admin" class="panel form-section section-purple">
       <div class="section-title">
         <div>
           <p class="eyebrow">ฟอร์มที่ 3</p>
           <h2>UAT หน้าอนุมัติ Admin</h2>
+          <p class="section-subtitle">ตรวจสอบข้อมูลก่อนอนุมัติและสถานะหลังอนุมัติ</p>
         </div>
         <span class="status-pill" data-summary-pill="admin">ยังไม่สรุปผล</span>
       </div>
@@ -214,25 +259,29 @@
       </div>
     </section>
 
-    <section id="summary" class="panel form-section">
+    <section id="summary" class="panel form-section section-orange">
       <div class="section-title">
         <div>
           <p class="eyebrow">สรุปผล</p>
           <h2>สรุปผลการทดสอบรวม</h2>
+          <p class="section-subtitle">สรุปผลจากทั้ง 3 ฟอร์มก่อนส่งแบบประเมิน</p>
         </div>
         <span class="status-pill" data-overall-pill>ยังไม่สรุปผล</span>
       </div>
 
       <div class="summary-grid">
         <article>
+          <span class="summary-icon">🚚</span>
           <h3>ตาชั่งใหญ่</h3>
           <p data-summary-text="bigScale">ยังไม่สรุปผล</p>
         </article>
         <article>
+          <span class="summary-icon">⚖️</span>
           <h3>ตาชั่งเล็ก / ชั่งซื้อ</h3>
           <p data-summary-text="smallScale">ยังไม่สรุปผล</p>
         </article>
         <article>
+          <span class="summary-icon">🛡️</span>
           <h3>หน้าอนุมัติ Admin</h3>
           <p data-summary-text="admin">ยังไม่สรุปผล</p>
         </article>
@@ -247,6 +296,39 @@
       <h3>ลงนามรับรองผลการทดสอบ</h3>
       <div class="signature-table" id="signatureTable"></div>
     </section>
+
+    <section class="bottom-action-card no-print" aria-label="ชุดปุ่มจัดการแบบประเมิน">
+      <div>
+        <p class="eyebrow">Submission Control</p>
+        <h2>ตรวจสอบข้อมูลก่อนบันทึก</h2>
+        <p class="section-subtitle">ระบบจะสร้างรายการใหม่ใน Firebase ทุกครั้งที่กดบันทึก และต้องกรอกชื่อผู้ประเมินก่อนส่งข้อมูล</p>
+      </div>
+      <div class="bottom-actions">
+        <button id="editBtn" class="secondary" type="button" aria-label="แก้ไขแบบประเมิน">
+          <span class="button-icon secondary-icon" aria-hidden="true">✎</span>
+          แก้ไข
+        </button>
+        <button id="cancelBtn" class="danger-soft" type="button" aria-label="ยกเลิกแบบประเมิน">
+          <span class="button-icon danger-icon" aria-hidden="true">×</span>
+          ยกเลิก
+        </button>
+        <button id="saveBtn" class="primary" type="button" aria-label="บันทึกแบบประเมิน">
+          <span class="button-icon" aria-hidden="true">✓</span>
+          บันทึก
+        </button>
+      </div>
+    </section>
+
+    <footer class="app-footer">
+      <div>
+        <strong>Akrivis UAT Assessment</strong>
+        <span>Version 1.5.0 · Staging Server</span>
+      </div>
+      <div>
+        <span>ผู้พัฒนาระบบ</span>
+        <strong>J-attapon</strong>
+      </div>
+    </footer>
   </main>
 
   <div id="toast" class="toast no-print" role="status" aria-live="polite"></div>

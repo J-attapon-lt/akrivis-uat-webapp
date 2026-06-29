@@ -1,4 +1,4 @@
-const STORAGE_KEY = "akrivis-uat-v1-5-0";
+const STORAGE_KEY = "akrivis-uat-v1-5-0-draft";
 const FIREBASE_COLLECTION = window.AKRIVIS_FIREBASE_COLLECTION || "akrivis_uat_records";
 
 const resultOptions = [
@@ -50,10 +50,22 @@ let state = loadState();
 let firebaseEnabled = false;
 let firebaseModules = null;
 let firestoreDb = null;
+let isSaving = false;
+
+function todayLocalDate() {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 10);
+}
 
 function defaultState() {
   return {
-    recordId: "",
+    evaluator: {
+      name: "",
+      department: "",
+      date: todayLocalDate(),
+      note: "",
+    },
     project: {
       system: "Akrivis",
       version: "1.5.0",
@@ -105,10 +117,57 @@ function setPath(path, value) {
   obj[parts[0]] = value;
 }
 
-function saveState(show = false) {
+function saveDraft() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
   updateSummaries();
-  if (show) showToast("บันทึกข้อมูลในเครื่องเรียบร้อยแล้ว");
+}
+
+function countCompletedAssessmentItems() {
+  const sectionKeys = ["bigScale", "smallScale", "admin"];
+  const totalTests = sectionKeys.reduce((sum, key) => sum + tests[key].length, 0);
+  const total = totalTests + sectionKeys.length + 1;
+  let completed = 0;
+
+  sectionKeys.forEach((key) => {
+    tests[key].forEach((_, index) => {
+      if (state[key]?.results?.[index + 1]) completed += 1;
+    });
+    if (state[key]?.finalResult) completed += 1;
+  });
+
+  if (state.overallResult) completed += 1;
+  return { completed, total, percent: Math.round((completed / total) * 100) };
+}
+
+function updateDashboard() {
+  const evaluatorStatus = document.getElementById("evaluatorStatus");
+  const evaluatorName = String(state.evaluator?.name || "").trim();
+  if (evaluatorStatus) {
+    evaluatorStatus.textContent = evaluatorName ? evaluatorName : "รอกรอกชื่อผู้ประเมิน";
+  }
+
+  const progress = countCompletedAssessmentItems();
+  const completionText = document.getElementById("completionText");
+  const completionBar = document.getElementById("completionBar");
+  if (completionText) {
+    completionText.textContent = `กรอกผลแล้ว ${progress.completed}/${progress.total} รายการ (${progress.percent}%)`;
+  }
+  if (completionBar) {
+    completionBar.style.width = `${progress.percent}%`;
+  }
+}
+
+function clearDraftAfterSuccessfulSubmit() {
+  const evaluator = {
+    name: "",
+    department: state.evaluator?.department || "",
+    date: todayLocalDate(),
+    note: "",
+  };
+  state = defaultState();
+  state.evaluator = evaluator;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
+  window.setTimeout(() => window.location.reload(), 900);
 }
 
 function showToast(message) {
@@ -116,7 +175,7 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
   window.clearTimeout(showToast.timer);
-  showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2600);
+  showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 3000);
 }
 
 function renderTests(sectionKey, containerId) {
@@ -186,27 +245,21 @@ function bindInputs() {
     setPath(path, input.value);
     input.addEventListener("input", () => {
       setPath(path, input.value);
-      saveState(false);
+      saveDraft();
     });
   });
 
   document.querySelectorAll("[data-result-group] input[type='radio']").forEach((radio) => {
     radio.addEventListener("change", () => {
       setPath(radio.name, radio.value);
-      saveState(false);
+      saveDraft();
     });
   });
 }
 
-function refreshBoundInputs() {
-  document.querySelectorAll("[data-field]").forEach((input) => {
-    const path = input.dataset.field;
-    const value = getPath(path) || "";
-    if (input.value !== value) input.value = value;
-  });
-}
-
 function updateSummaries() {
+  updateDashboard();
+
   ["bigScale", "smallScale", "admin"].forEach((key) => {
     const value = state[key]?.finalResult || "";
     const label = resultOptions.find((r) => r.value === value)?.label || "ยังไม่สรุปผล";
@@ -229,7 +282,8 @@ function updateSummaries() {
 
 function bindTabs() {
   document.querySelectorAll(".tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
+    tab.addEventListener("click", (event) => {
+      event.preventDefault();
       document.querySelectorAll(".tab").forEach((item) => item.classList.remove("active"));
       document.querySelectorAll(".panel").forEach((panel) => panel.classList.remove("active"));
       tab.classList.add("active");
@@ -237,43 +291,6 @@ function bindTabs() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
   });
-}
-
-function exportJson() {
-  saveState(false);
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json;charset=utf-8" });
-  const date = new Date().toISOString().slice(0, 10);
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `akrivis-uat-v1.5.0-${date}.json`;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(link.href);
-  showToast("Export JSON เรียบร้อยแล้ว");
-}
-
-function importJson(file) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const imported = JSON.parse(reader.result);
-      state = deepMerge(defaultState(), imported);
-      saveState(false);
-      window.location.reload();
-    } catch (error) {
-      showToast("ไฟล์ JSON ไม่ถูกต้อง");
-    }
-  };
-  reader.readAsText(file);
-}
-
-function resetData() {
-  const confirmed = window.confirm("ยืนยันล้างข้อมูล UAT ทั้งหมดในเครื่องนี้หรือไม่? ข้อมูลบน Firebase จะไม่ถูกลบ");
-  if (!confirmed) return;
-  localStorage.removeItem(STORAGE_KEY);
-  state = defaultState();
-  window.location.reload();
 }
 
 function firebaseConfigIsReady() {
@@ -296,8 +313,7 @@ function setCloudStatus(kind, message) {
 
 async function initFirebase() {
   if (!firebaseConfigIsReady()) {
-    setCloudStatus("muted", "Firebase ยังไม่ได้ตั้งค่า · ตอนนี้บันทึกเฉพาะในเครื่อง");
-    toggleCloudButtons(true);
+    setCloudStatus("error", "ยังไม่ได้ตั้งค่า Firebase config · ปุ่มบันทึกจะยังส่งเข้าฐานข้อมูลไม่ได้");
     return;
   }
 
@@ -310,185 +326,120 @@ async function initFirebase() {
     firestoreDb = firestoreModule.getFirestore(firebaseApp);
     firebaseModules = firestoreModule;
     firebaseEnabled = true;
-    setCloudStatus("connected", `เชื่อมต่อ Firebase แล้ว · Collection: ${FIREBASE_COLLECTION}`);
-    toggleCloudButtons(false);
+    setCloudStatus("connected", `พร้อมบันทึกลง Firebase · Collection: ${FIREBASE_COLLECTION}`);
   } catch (error) {
     console.error(error);
     firebaseEnabled = false;
     setCloudStatus("error", "เชื่อมต่อ Firebase ไม่สำเร็จ · ตรวจสอบ config / rules / internet");
-    toggleCloudButtons(true);
   }
 }
 
-function toggleCloudButtons(disabled) {
-  ["saveCloudBtn", "loadCloudBtn", "listCloudBtn", "newRecordBtn"].forEach((id) => {
-    const button = document.getElementById(id);
-    if (button) button.disabled = Boolean(disabled && id !== "newRecordBtn");
-  });
-}
+function validateBeforeSubmit() {
+  const evaluatorNameInput = document.getElementById("evaluatorName");
+  const evaluatorName = String(state.evaluator?.name || "").trim();
 
-function generateRecordId() {
-  const stamp = new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 14);
-  const rand = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `UAT-${stamp}-${rand}`;
-}
-
-function setRecordId(recordId) {
-  state.recordId = recordId;
-  refreshBoundInputs();
-  saveState(false);
-}
-
-function cloudDocumentRef(recordId) {
-  return firebaseModules.doc(firestoreDb, FIREBASE_COLLECTION, recordId);
-}
-
-async function saveToFirebase() {
-  saveState(false);
+  if (!evaluatorName) {
+    showToast("กรุณากรอกชื่อผู้ประเมินก่อนบันทึก");
+    evaluatorNameInput?.focus();
+    evaluatorNameInput?.classList.add("input-error");
+    window.setTimeout(() => evaluatorNameInput?.classList.remove("input-error"), 1800);
+    return false;
+  }
 
   if (!firebaseEnabled) {
-    showToast("ยังไม่ได้เชื่อมต่อ Firebase");
-    return;
+    showToast("ยังไม่พร้อมบันทึก Firebase กรุณาตรวจสอบการตั้งค่า Firebase");
+    return false;
   }
 
-  const recordId = state.recordId || generateRecordId();
-  setRecordId(recordId);
+  return true;
+}
 
-  const payload = {
-    recordId,
-    project: state.project,
+function buildPayload() {
+  const evaluatorName = String(state.evaluator?.name || "").trim();
+  const ticketNo = state.bigScale?.ticketNo || state.smallScale?.ticketNo || state.admin?.ticketNo || "";
+  const data = JSON.parse(JSON.stringify(state));
+
+  return {
+    evaluatorName,
+    evaluatorDepartment: state.evaluator?.department || "",
+    evaluatorDate: state.evaluator?.date || todayLocalDate(),
+    evaluatorNote: state.evaluator?.note || "",
+    projectSystem: state.project?.system || "Akrivis",
+    projectVersion: state.project?.version || "1.5.0",
+    projectEnvironment: state.project?.environment || "Staging Server",
+    projectTopic: state.project?.topic || "การรับเข้าหลายลูกค้าและหลายสินค้า",
     overallResult: state.overallResult || "",
-    testerBigScale: state.bigScale?.tester || "",
-    testerSmallScale: state.smallScale?.tester || "",
-    testerAdmin: state.admin?.tester || "",
-    ticketNo: state.bigScale?.ticketNo || state.smallScale?.ticketNo || state.admin?.ticketNo || "",
-    data: JSON.parse(JSON.stringify(state)),
-    updatedAt: firebaseModules.serverTimestamp(),
-    updatedAtLocal: new Date().toISOString(),
+    bigScaleResult: state.bigScale?.finalResult || "",
+    smallScaleResult: state.smallScale?.finalResult || "",
+    adminResult: state.admin?.finalResult || "",
+    ticketNo,
+    data,
+    createdAt: firebaseModules.serverTimestamp(),
+    createdAtLocal: new Date().toISOString(),
+    source: "akrivis-uat-webapp-v1.5.0",
   };
-
-  try {
-    await firebaseModules.setDoc(cloudDocumentRef(recordId), payload, { merge: true });
-    showToast(`บันทึกขึ้น Firebase แล้ว: ${recordId}`);
-    await listCloudRecords(false);
-  } catch (error) {
-    console.error(error);
-    showToast("บันทึกขึ้น Firebase ไม่สำเร็จ");
-  }
 }
 
-async function loadFromFirebase(recordIdFromButton) {
-  if (!firebaseEnabled) {
-    showToast("ยังไม่ได้เชื่อมต่อ Firebase");
-    return;
-  }
-
-  const recordIdInput = document.querySelector("[data-field='recordId']");
-  const recordId = (recordIdFromButton || state.recordId || recordIdInput?.value || "").trim();
-  if (!recordId) {
-    showToast("กรุณากรอก Record ID ก่อนโหลดข้อมูล");
-    return;
-  }
-
-  try {
-    const snap = await firebaseModules.getDoc(cloudDocumentRef(recordId));
-    if (!snap.exists()) {
-      showToast("ไม่พบข้อมูล Record ID นี้ใน Firebase");
-      return;
-    }
-    const remote = snap.data()?.data || {};
-    state = deepMerge(defaultState(), remote);
-    state.recordId = recordId;
-    saveState(false);
-    showToast("โหลดข้อมูลจาก Firebase เรียบร้อยแล้ว");
-    window.setTimeout(() => window.location.reload(), 500);
-  } catch (error) {
-    console.error(error);
-    showToast("โหลดข้อมูลจาก Firebase ไม่สำเร็จ");
-  }
+function setSaveButtonLoading(isLoading) {
+  const saveBtn = document.getElementById("saveBtn");
+  if (!saveBtn) return;
+  saveBtn.disabled = isLoading;
+  saveBtn.innerHTML = isLoading
+    ? `<span class="button-icon" aria-hidden="true">…</span>กำลังบันทึก...`
+    : `<span class="button-icon" aria-hidden="true">✓</span>บันทึก`;
 }
 
-async function listCloudRecords(showMessage = true) {
-  const list = document.getElementById("cloudRecords");
-  if (!list) return;
+function switchToTab(tabId) {
+  const targetTab = document.querySelector(`.tab[data-tab="${tabId}"]`);
+  const targetPanel = document.getElementById(tabId);
+  if (!targetTab || !targetPanel) return;
 
-  if (!firebaseEnabled) {
-    list.innerHTML = `<p class="muted-text">ยังไม่ได้เชื่อมต่อ Firebase</p>`;
-    return;
-  }
-
-  try {
-    list.innerHTML = `<p class="muted-text">กำลังโหลดรายการล่าสุด...</p>`;
-    const q = firebaseModules.query(
-      firebaseModules.collection(firestoreDb, FIREBASE_COLLECTION),
-      firebaseModules.orderBy("updatedAt", "desc"),
-      firebaseModules.limit(20)
-    );
-    const snapshot = await firebaseModules.getDocs(q);
-
-    if (snapshot.empty) {
-      list.innerHTML = `<p class="muted-text">ยังไม่มีข้อมูลใน Firebase</p>`;
-      return;
-    }
-
-    list.innerHTML = Array.from(snapshot.docs).map((docSnap) => {
-      const item = docSnap.data();
-      const data = item.data || {};
-      const title = [data.project?.system || "Akrivis", data.project?.version || "1.5.0"].join(" ");
-      const ticket = item.ticketNo ? ` · ตั๋ว: ${escapeHtml(item.ticketNo)}` : "";
-      const updated = item.updatedAtLocal ? new Date(item.updatedAtLocal).toLocaleString("th-TH") : "ไม่ทราบเวลา";
-      const resultLabel = resultOptions.find((r) => r.value === item.overallResult)?.label || "ยังไม่สรุปผล";
-      return `
-        <article class="cloud-record">
-          <div>
-            <strong>${escapeHtml(title)}</strong>
-            <p>${escapeHtml(item.recordId || docSnap.id)}${ticket}</p>
-            <small>อัปเดตล่าสุด: ${updated} · ผลรวม: ${escapeHtml(resultLabel)}</small>
-          </div>
-          <button type="button" data-load-cloud-record="${escapeHtml(item.recordId || docSnap.id)}">โหลด</button>
-        </article>
-      `;
-    }).join("");
-
-    document.querySelectorAll("[data-load-cloud-record]").forEach((button) => {
-      button.addEventListener("click", () => loadFromFirebase(button.dataset.loadCloudRecord));
-    });
-
-    if (showMessage) showToast("โหลดรายการจาก Firebase เรียบร้อยแล้ว");
-  } catch (error) {
-    console.error(error);
-    list.innerHTML = `<p class="muted-text">โหลดรายการ Firebase ไม่สำเร็จ ตรวจสอบ Rules หรือ Index</p>`;
-  }
+  document.querySelectorAll(".tab").forEach((item) => item.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach((panel) => panel.classList.remove("active"));
+  targetTab.classList.add("active");
+  targetPanel.classList.add("active");
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+function editAssessment() {
+  switchToTab("big-scale");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  showToast("สามารถแก้ไขข้อมูลในแบบฟอร์มได้เลย แล้วกดบันทึกด้านล่างเมื่อพร้อมส่ง");
+  document.getElementById("evaluatorName")?.focus();
 }
 
-function createNewRecord() {
-  const confirmed = window.confirm("ต้องการเริ่ม Record ใหม่หรือไม่? ข้อมูลเดิมในเครื่องจะถูกล้าง แต่ข้อมูลที่บันทึกบน Firebase แล้วจะยังอยู่");
+function cancelAssessment() {
+  const confirmed = window.confirm("ต้องการยกเลิกและล้างข้อมูลที่กำลังกรอกอยู่หรือไม่? ข้อมูลที่บันทึกไปแล้วใน Firebase จะไม่ถูกลบ");
   if (!confirmed) return;
+
   state = defaultState();
-  state.recordId = generateRecordId();
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state, null, 2));
-  window.location.reload();
+  showToast("ยกเลิกและล้างข้อมูลในแบบฟอร์มแล้ว");
+  window.setTimeout(() => window.location.reload(), 450);
 }
 
-function bindCloudActions() {
-  const saveCloudBtn = document.getElementById("saveCloudBtn");
-  const loadCloudBtn = document.getElementById("loadCloudBtn");
-  const listCloudBtn = document.getElementById("listCloudBtn");
-  const newRecordBtn = document.getElementById("newRecordBtn");
+async function submitAssessment() {
+  if (isSaving) return;
+  saveDraft();
+  if (!validateBeforeSubmit()) return;
 
-  if (saveCloudBtn) saveCloudBtn.addEventListener("click", saveToFirebase);
-  if (loadCloudBtn) loadCloudBtn.addEventListener("click", () => loadFromFirebase());
-  if (listCloudBtn) listCloudBtn.addEventListener("click", () => listCloudRecords(true));
-  if (newRecordBtn) newRecordBtn.addEventListener("click", createNewRecord);
+  isSaving = true;
+  setSaveButtonLoading(true);
+
+  try {
+    const payload = buildPayload();
+    const docRef = await firebaseModules.addDoc(
+      firebaseModules.collection(firestoreDb, FIREBASE_COLLECTION),
+      payload
+    );
+    showToast(`บันทึกสำเร็จ เลขอ้างอิง: ${docRef.id}`);
+    clearDraftAfterSuccessfulSubmit();
+  } catch (error) {
+    console.error(error);
+    showToast("บันทึกไม่สำเร็จ กรุณาตรวจสอบ Firebase Rules หรืออินเทอร์เน็ต");
+  } finally {
+    isSaving = false;
+    setSaveButtonLoading(false);
+  }
 }
 
 function init() {
@@ -499,19 +450,13 @@ function init() {
   renderResultGroups();
   bindInputs();
   bindTabs();
-  bindCloudActions();
   updateSummaries();
 
-  document.getElementById("saveBtn").addEventListener("click", () => saveState(true));
-  document.getElementById("printBtn").addEventListener("click", () => window.print());
-  document.getElementById("exportBtn").addEventListener("click", exportJson);
-  document.getElementById("resetBtn").addEventListener("click", resetData);
-  document.getElementById("importFile").addEventListener("change", (event) => {
-    const file = event.target.files?.[0];
-    if (file) importJson(file);
-  });
+  document.getElementById("saveBtn")?.addEventListener("click", submitAssessment);
+  document.getElementById("editBtn")?.addEventListener("click", editAssessment);
+  document.getElementById("cancelBtn")?.addEventListener("click", cancelAssessment);
 
-  window.setInterval(() => saveState(false), 30000);
+  window.setInterval(saveDraft, 30000);
   initFirebase();
 }
 
