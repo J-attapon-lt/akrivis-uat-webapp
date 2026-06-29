@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ใช้สำหรับ UAT/Staging เท่านั้น: เปิดอ่าน/เขียน Collection ของฟอร์ม UAT
+    // ก่อนใช้งาน Production ควรเพิ่ม Firebase Authentication และจำกัดสิทธิ์ผู้ใช้
+    match /akrivis_uat_records/{recordId} {
+      allow read, write: if true;
+    }
+  }
+}

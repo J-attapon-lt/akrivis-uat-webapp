@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Akrivis UAT Form v1.5.0</title>
+  <meta name="description" content="แบบฟอร์ม UAT สำหรับ Akrivis Version 1.5.0 บน Staging Server" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <p class="eyebrow">UAT Web App</p>
+      <h1>Akrivis Version 1.5.0</h1>
+      <p class="subtitle">Staging Server · การรับเข้าหลายลูกค้าและหลายสินค้า</p>
+    </div>
+    <div class="header-actions no-print">
+      <button id="saveBtn" class="primary">บันทึกในเครื่อง</button>
+      <button id="printBtn">พิมพ์ / Save PDF</button>
+      <button id="exportBtn">Export JSON</button>
+      <label class="import-label" for="importFile">Import JSON</label>
+      <input id="importFile" type="file" accept="application/json" />
+      <button id="resetBtn" class="danger">ล้างข้อมูล</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="project-card">
+      <div class="grid four">
+        <label>ระบบ
+          <input data-field="project.system" value="Akrivis" />
+        </label>
+        <label>Version
+          <input data-field="project.version" value="1.5.0" />
+        </label>
+        <label>Environment
+          <input data-field="project.environment" value="Staging Server" />
+        </label>
+        <label>หัวข้อ
+          <input data-field="project.topic" value="การรับเข้าหลายลูกค้าและหลายสินค้า" />
+        </label>
+      </div>
+    </section>
+
+    <section class="cloud-card no-print">
+      <div class="cloud-card-head">
+        <div>
+          <p class="eyebrow">Firebase Database</p>
+          <h2>บันทึกข้อมูล UAT ลง Cloud Firestore</h2>
+          <p id="cloudStatus" class="cloud-status muted">กำลังตรวจสอบการตั้งค่า Firebase...</p>
+        </div>
+        <div class="cloud-actions">
+          <button id="newRecordBtn" type="button">เริ่ม Record ใหม่</button>
+          <button id="saveCloudBtn" type="button" class="primary">บันทึก Firebase</button>
+          <button id="loadCloudBtn" type="button">โหลด Firebase</button>
+          <button id="listCloudBtn" type="button">ดูรายการล่าสุด</button>
+        </div>
+      </div>
+      <div class="grid two cloud-grid">
+        <label>Record ID
+          <input data-field="recordId" placeholder="เช่น UAT-20260629153000-AB12" />
+        </label>
+        <label>Collection Name
+          <input value="akrivis_uat_records" readonly />
+        </label>
+      </div>
+      <div id="cloudRecords" class="cloud-records"></div>
+      <p class="muted-text cloud-note">หมายเหตุ: ระบบจะยังบันทึกในเครื่องอัตโนมัติด้วยเสมอ แม้ Firebase ยังไม่ได้ตั้งค่า</p>
+    </section>
+
+    <nav class="tabs no-print" aria-label="เลือกฟอร์ม UAT">
+      <button class="tab active" data-tab="big-scale">ฟอร์ม 1 · ตาชั่งใหญ่</button>
+      <button class="tab" data-tab="small-scale">ฟอร์ม 2 · ตาชั่งเล็ก / ชั่งซื้อ</button>
+      <button class="tab" data-tab="admin">ฟอร์ม 3 · Admin</button>
+      <button class="tab" data-tab="summary">สรุปผลรวม</button>
+    </nav>
+
+    <section id="big-scale" class="panel active form-section">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">ฟอร์มที่ 1</p>
+          <h2>UAT ตาชั่งใหญ่</h2>
+        </div>
+        <span class="status-pill" data-summary-pill="bigScale">ยังไม่สรุปผล</span>
+      </div>
+
+      <div class="grid four">
+        <label>วันที่ทดสอบ <input type="date" data-field="bigScale.testDate" /></label>
+        <label>ผู้ทดสอบ <input data-field="bigScale.tester" /></label>
+        <label>แผนก <input data-field="bigScale.department" /></label>
+        <label>เลขที่ตั๋วชั่งใหญ่ <input data-field="bigScale.ticketNo" /></label>
+      </div>
+
+      <div class="note-box">
+        <h3>วัตถุประสงค์การทดสอบ</h3>
+        <p>เพื่อทดสอบว่าตั๋วชั่งตาชั่งใหญ่สามารถรองรับการรับเข้าหลายลูกค้าและหลายสินค้าในตั๋วเดียวได้อย่างถูกต้อง และสามารถแสดงสถานะของใบชั่งเล็กแยกแต่ละรายการได้ชัดเจน</p>
+      </div>
+
+      <h3>ข้อมูลที่ใช้ทดสอบ</h3>
+      <div class="grid three">
+        <label>ลูกค้ารายที่ 1 <input data-field="bigScale.data.customer1" /></label>
+        <label>ลูกค้ารายที่ 2 <input data-field="bigScale.data.customer2" /></label>
+        <label>สินค้ารายการที่ 1 <input data-field="bigScale.data.product1" /></label>
+        <label>สินค้ารายการที่ 2 <input data-field="bigScale.data.product2" /></label>
+        <label>จำนวนรายการที่รับเข้า <input data-field="bigScale.data.itemCount" /></label>
+        <label>จำนวนใบชั่งเล็กที่เกี่ยวข้อง <input data-field="bigScale.data.smallTicketCount" /></label>
+      </div>
+
+      <h3>รายการทดสอบ</h3>
+      <div id="bigScaleTests" class="test-table"></div>
+
+      <h3>สรุปผลฟอร์มตาชั่งใหญ่</h3>
+      <div class="result-row" data-result-group="bigScale.finalResult"></div>
+      <label>ข้อสังเกต / ปัญหาที่พบ
+        <textarea data-field="bigScale.remarks" rows="4"></textarea>
+      </label>
+      <div class="grid two signature-grid">
+        <label>ผู้ทดสอบ <input data-field="bigScale.sign.tester" /></label>
+        <label>วันที่ <input type="date" data-field="bigScale.sign.date" /></label>
+      </div>
+    </section>
+
+    <section id="small-scale" class="panel form-section">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">ฟอร์มที่ 2</p>
+          <h2>UAT ตาชั่งเล็ก / ชั่งซื้อ</h2>
+        </div>
+        <span class="status-pill" data-summary-pill="smallScale">ยังไม่สรุปผล</span>
+      </div>
+
+      <div class="grid four">
+        <label>วันที่ทดสอบ <input type="date" data-field="smallScale.testDate" /></label>
+        <label>ผู้ทดสอบ <input data-field="smallScale.tester" /></label>
+        <label>แผนก <input data-field="smallScale.department" /></label>
+        <label>เลขที่ตั๋วชั่งใหญ่ที่อ้างอิง <input data-field="smallScale.ticketNo" /></label>
+      </div>
+
+      <div class="note-box">
+        <h3>วัตถุประสงค์การทดสอบ</h3>
+        <p>เพื่อทดสอบว่าหน้าชั่งซื้อหรือตาชั่งเล็กสามารถแสดงบัตรชั่งเล็กแยกตามลูกค้าและสินค้าได้ถูกต้องตามข้อมูลที่บันทึกจากตั๋วชั่งใหญ่</p>
+      </div>
+
+      <h3>ข้อมูลที่ใช้ทดสอบ</h3>
+      <div class="grid three">
+        <label>เลขที่ตั๋วชั่งใหญ่ <input data-field="smallScale.data.ticketNo" /></label>
+        <label>ลูกค้าที่ 1 <input data-field="smallScale.data.customer1" /></label>
+        <label>สินค้าที่ 1 <input data-field="smallScale.data.product1" /></label>
+        <label>ลูกค้าที่ 2 <input data-field="smallScale.data.customer2" /></label>
+        <label>สินค้าที่ 2 <input data-field="smallScale.data.product2" /></label>
+        <label>จำนวนบัตรชั่งเล็ก <input data-field="smallScale.data.cardCount" /></label>
+        <label>น้ำหนักที่ชั่ง <input data-field="smallScale.data.weight" /></label>
+      </div>
+
+      <h3>รายการทดสอบ</h3>
+      <div id="smallScaleTests" class="test-table"></div>
+
+      <h3>สรุปผลฟอร์มตาชั่งเล็ก / ชั่งซื้อ</h3>
+      <div class="result-row" data-result-group="smallScale.finalResult"></div>
+      <label>ข้อสังเกต / ปัญหาที่พบ
+        <textarea data-field="smallScale.remarks" rows="4"></textarea>
+      </label>
+      <div class="grid two signature-grid">
+        <label>ผู้ทดสอบ <input data-field="smallScale.sign.tester" /></label>
+        <label>วันที่ <input type="date" data-field="smallScale.sign.date" /></label>
+      </div>
+    </section>
+
+    <section id="admin" class="panel form-section">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">ฟอร์มที่ 3</p>
+          <h2>UAT หน้าอนุมัติ Admin</h2>
+        </div>
+        <span class="status-pill" data-summary-pill="admin">ยังไม่สรุปผล</span>
+      </div>
+
+      <div class="grid four">
+        <label>วันที่ทดสอบ <input type="date" data-field="admin.testDate" /></label>
+        <label>ผู้ทดสอบ <input data-field="admin.tester" /></label>
+        <label>สิทธิ์การใช้งาน <input data-field="admin.role" value="Admin" /></label>
+        <label>เลขที่ตั๋วชั่งใหญ่ที่ตรวจสอบ <input data-field="admin.ticketNo" /></label>
+      </div>
+
+      <div class="note-box">
+        <h3>วัตถุประสงค์การทดสอบ</h3>
+        <p>เพื่อทดสอบว่าหน้าอนุมัติของ Admin สามารถแสดงรายการรับเข้าแยกตามลูกค้าและสินค้าได้ถูกต้อง และสามารถตรวจสอบข้อมูลก่อนอนุมัติได้อย่างครบถ้วน</p>
+      </div>
+
+      <h3>ข้อมูลที่ใช้ทดสอบ</h3>
+      <div class="grid three">
+        <label>เลขที่ตั๋วชั่งใหญ่ <input data-field="admin.data.ticketNo" /></label>
+        <label>จำนวนลูกค้าในตั๋ว <input data-field="admin.data.customerCount" /></label>
+        <label>จำนวนสินค้าในตั๋ว <input data-field="admin.data.productCount" /></label>
+        <label>จำนวนใบชั่งเล็ก <input data-field="admin.data.smallTicketCount" /></label>
+        <label>ผู้สร้างรายการ <input data-field="admin.data.creator" /></label>
+        <label>ผู้อนุมัติ <input data-field="admin.data.approver" /></label>
+      </div>
+
+      <h3>รายการทดสอบ</h3>
+      <div id="adminTests" class="test-table"></div>
+
+      <h3>สรุปผลฟอร์ม Admin</h3>
+      <div class="result-row" data-result-group="admin.finalResult"></div>
+      <label>ข้อสังเกต / ปัญหาที่พบ
+        <textarea data-field="admin.remarks" rows="4"></textarea>
+      </label>
+      <div class="grid two signature-grid">
+        <label>ผู้ทดสอบ <input data-field="admin.sign.tester" /></label>
+        <label>วันที่ <input type="date" data-field="admin.sign.date" /></label>
+      </div>
+    </section>
+
+    <section id="summary" class="panel form-section">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">สรุปผล</p>
+          <h2>สรุปผลการทดสอบรวม</h2>
+        </div>
+        <span class="status-pill" data-overall-pill>ยังไม่สรุปผล</span>
+      </div>
+
+      <div class="summary-grid">
+        <article>
+          <h3>ตาชั่งใหญ่</h3>
+          <p data-summary-text="bigScale">ยังไม่สรุปผล</p>
+        </article>
+        <article>
+          <h3>ตาชั่งเล็ก / ชั่งซื้อ</h3>
+          <p data-summary-text="smallScale">ยังไม่สรุปผล</p>
+        </article>
+        <article>
+          <h3>หน้าอนุมัติ Admin</h3>
+          <p data-summary-text="admin">ยังไม่สรุปผล</p>
+        </article>
+      </div>
+
+      <h3>ผลการทดสอบโดยรวม</h3>
+      <div class="result-row" data-result-group="overallResult"></div>
+      <label>ข้อสรุปเพิ่มเติม
+        <textarea data-field="overallRemarks" rows="5"></textarea>
+      </label>
+
+      <h3>ลงนามรับรองผลการทดสอบ</h3>
+      <div class="signature-table" id="signatureTable"></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast no-print" role="status" aria-live="polite"></div>
+
+  <script src="firebase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

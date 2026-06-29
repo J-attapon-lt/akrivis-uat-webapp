@@ -31,6 +31,13 @@
 └── .github/workflows/deploy-pages.yml
 ```
 
+
+## ฟอนต์ที่ใช้
+
+เว็บแอปตั้งค่า `font-family` เป็น `TH Sarabun New` เป็นหลัก และใช้ `Sarabun` จาก Google Fonts เป็นฟอนต์สำรองในกรณีที่เครื่องผู้ใช้งานไม่มี TH Sarabun New ติดตั้งอยู่
+
+หมายเหตุ: โปรเจกต์นี้ไม่ได้แนบไฟล์ฟอนต์ TH Sarabun New เข้าไปใน ZIP หากต้องการให้แสดง TH Sarabun New ตรงกันทุกเครื่อง ควรติดตั้งฟอนต์นี้ในเครื่องผู้ใช้งานก่อน หรือให้ฝ่าย IT จัดการฟอนต์ตามสิทธิ์การใช้งานขององค์กร
+
 ## วิธีตั้งค่า Firebase Firestore
 
 ### 1) สร้าง Firebase Project
@@ -117,3 +124,8 @@ firebase deploy --only firestore:rules
 - การบันทึก Firebase ใช้ Collection ชื่อ `akrivis_uat_records`
 - ข้อมูลแต่ละชุดใช้ `Record ID` เป็นเลขอ้างอิง
 - ข้อมูลที่ Export เป็น JSON ยังสามารถ Import กลับมาใช้งานได้เหมือนเดิม
+
+## Font
+
+เว็บแอปตั้งค่าให้ใช้ฟอนต์ **Thasadith** ผ่าน Google Fonts โดยมี fallback เป็น Sarabun / Tahoma / Arial ในกรณีที่โหลดฟอนต์ไม่ได้
+
